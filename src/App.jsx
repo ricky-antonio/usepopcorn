@@ -11,59 +11,19 @@ import WatchedList from "./components/WatchedList";
 import Loader from "./components/Loader";
 import ErrorMessage from "./components/ErrorMessage";
 import MovieDetails from "./components/MovieDetails";
+import data from "./data";
 
 
-const tempMovieData = [
-    {
-        imdbID: "tt1375666",
-        Title: "Inception",
-        Year: "2010",
-        Poster: "https://m.media-amazon.com/images/M/MV5BMjAxMzY3NjcxNF5BMl5BanBnXkFtZTcwNTI5OTM0Mw@@._V1_SX300.jpg",
-    },
-    {
-        imdbID: "tt0133093",
-        Title: "The Matrix",
-        Year: "1999",
-        Poster: "https://m.media-amazon.com/images/M/MV5BNzQzOTk3OTAtNDQ0Zi00ZTVkLWI0MTEtMDllZjNkYzNjNTc4L2ltYWdlXkEyXkFqcGdeQXVyNjU0OTQ0OTY@._V1_SX300.jpg",
-    },
-    {
-        imdbID: "tt6751668",
-        Title: "Parasite",
-        Year: "2019",
-        Poster: "https://m.media-amazon.com/images/M/MV5BYWZjMjk3ZTItODQ2ZC00NTY5LWE0ZDYtZTI3MjcwN2Q5NTVkXkEyXkFqcGdeQXVyODk4OTc3MTY@._V1_SX300.jpg",
-    },
-];
-
-const tempWatchedData = [
-    {
-        imdbID: "tt1375666",
-        Title: "Inception",
-        Year: "2010",
-        Poster: "https://m.media-amazon.com/images/M/MV5BMjAxMzY3NjcxNF5BMl5BanBnXkFtZTcwNTI5OTM0Mw@@._V1_SX300.jpg",
-        runtime: 148,
-        imdbRating: 8.8,
-        userRating: 10,
-    },
-    {
-        imdbID: "tt0088763",
-        Title: "Back to the Future",
-        Year: "1985",
-        Poster: "https://m.media-amazon.com/images/M/MV5BZmU0M2Y1OGUtZjIxNi00ZjBkLTg1MjgtOWIyNThiZWIwYjRiXkEyXkFqcGdeQXVyMTQxNzMzNDI@._V1_SX300.jpg",
-        runtime: 116,
-        imdbRating: 8.5,
-        userRating: 9,
-    },
-];
 
 const OMDB_API_KEY = import.meta.env.VITE_OMDB_API_KEY;
 
 const App = () => {
-    const [movies, setMovies] = useState(tempMovieData);
-    const [watched, setWatched] = useState(tempWatchedData);
+    const [movies, setMovies] = useState([]);
+    const [watched, setWatched] = useState(data);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState("");
     const [query, setQuery] = useState("");
-    const [selectedId, setSelectedId] = useState("tt0133093");
+    const [selectedId, setSelectedId] = useState(null);
 
     useEffect(() => {
         const fetchMovies = async () => {
@@ -99,14 +59,24 @@ const App = () => {
         }
 
         fetchMovies();
-    }, [query]);
+    }, [query, watched]);
 
     function onSelectMovie(movieId) {
         movieId === selectedId ? setSelectedId(null) : setSelectedId(movieId);
     }
 
     function handleCloseMovie() {
-        setSelectedId(null)
+        setSelectedId(null);
+    }
+
+    function handleAddMovie(newMovie) {
+        setWatched((watchedMovies) => [...watchedMovies, newMovie]);
+    }
+
+    function handleDeleteMovie(movieId) {
+        setWatched((watchedMovies) =>
+            watchedMovies.filter((movie) => movie.imdbID !== movieId)
+        );
     }
 
     return (
@@ -132,11 +102,21 @@ const App = () => {
 
                 <ListBox>
                     {selectedId ? (
-                        <MovieDetails selectedId={selectedId} onCloseMovie={handleCloseMovie} OMDB_API_KEY={OMDB_API_KEY} />
+                        <MovieDetails
+                            selectedId={selectedId}
+                            onCloseMovie={handleCloseMovie}
+                            OMDB_API_KEY={OMDB_API_KEY}
+                            onAddMovie={handleAddMovie}
+                            watched={watched}
+                            key={selectedId}
+                        />
                     ) : (
                         <>
                             <WatchedSummary watched={watched} />
-                            <WatchedList watched={watched} />
+                            <WatchedList
+                                watched={watched}
+                                onDeleteMovie={handleDeleteMovie}
+                            />
                         </>
                     )}
                 </ListBox>
