@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import StarRating from "./StarRating";
 import Loader from "./Loader";
 import ErrorMessage from "./ErrorMessage";
-import { tempMovie } from "../data";
 
 const MovieDetails = ({
     selectedId,
@@ -11,7 +10,7 @@ const MovieDetails = ({
     onAddMovie,
     watched,
 }) => {
-    const [movie, setMovie] = useState(tempMovie);
+    const [movie, setMovie] = useState({});
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState("");
     const [userRating, setUserRating] = useState(null);
@@ -60,6 +59,28 @@ const MovieDetails = ({
         };
         getMovieDetails();
     }, [selectedId]);
+
+    useEffect(() => {
+        if (!title) return;
+        document.title = `Title | ${title}`;
+
+        return () => {
+            document.title = "usePopcorn";
+        };
+    }, [title]);
+
+    useEffect(() => {
+        const callback = (e) => {
+            if (e.code === "Escape") {
+                onCloseMovie();
+            }
+        };
+
+        document.addEventListener("keydown", callback);
+        return () => {
+            document.removeEventListener("keydown", callback);
+        };
+    }, [onCloseMovie]);
 
     function handleAddWatchedMovie() {
         onAddMovie({

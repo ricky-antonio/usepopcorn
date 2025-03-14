@@ -13,8 +13,6 @@ import ErrorMessage from "./components/ErrorMessage";
 import MovieDetails from "./components/MovieDetails";
 import data from "./data";
 
-
-
 const OMDB_API_KEY = import.meta.env.VITE_OMDB_API_KEY;
 
 const App = () => {
@@ -26,12 +24,15 @@ const App = () => {
     const [selectedId, setSelectedId] = useState(null);
 
     useEffect(() => {
+        const controller = new AbortController();
+
         const fetchMovies = async () => {
             try {
                 setIsLoading(true);
                 setError("");
                 const res = await fetch(
-                    `https://www.omdbapi.com/?apikey=${OMDB_API_KEY}&s=${query}`
+                    `https://www.omdbapi.com/?apikey=${OMDB_API_KEY}&s=${query}`,
+                    { signal: controller.signal }
                 );
 
                 if (!res.ok)
@@ -44,9 +45,12 @@ const App = () => {
                     throw new Error("Movie not found");
 
                 setMovies(data.Search);
-                console.log(data.search);
+                setError("");
             } catch (err) {
-                setError(err.message);
+                console.error(err.message);
+                if (err.name !== "AbortError") {
+                    setError(err.message);
+                }
             } finally {
                 setIsLoading(false);
             }
@@ -58,7 +62,12 @@ const App = () => {
             return;
         }
 
+        handleCloseMovie();
         fetchMovies();
+
+        return () => {
+            controller.abort();
+        };
     }, [query, watched]);
 
     function onSelectMovie(movieId) {
