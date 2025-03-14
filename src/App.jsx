@@ -10,6 +10,8 @@ import WatchedSummary from "./components/WatchedSummary";
 import WatchedList from "./components/WatchedList";
 import Loader from "./components/Loader";
 import ErrorMessage from "./components/ErrorMessage";
+import MovieDetails from "./components/MovieDetails";
+
 
 const tempMovieData = [
     {
@@ -100,9 +102,11 @@ const App = () => {
     }, [query]);
 
     function onSelectMovie(movieId) {
-        alert(movieId)
-        setSelectedId(movieId);
+        movieId === selectedId ? setSelectedId(null) : setSelectedId(movieId);
+    }
 
+    function handleCloseMovie() {
+        setSelectedId(null)
     }
 
     return (
@@ -116,13 +120,25 @@ const App = () => {
             <Main>
                 <ListBox>
                     {isLoading && <Loader />}
-                    {!isLoading && !error && <MovieList movies={movies} onSelectMovie={onSelectMovie} />}
+                    {!isLoading && !error && (
+                        <MovieList
+                            movies={movies}
+                            onSelectMovie={onSelectMovie}
+                            onCloseMovie={handleCloseMovie}
+                        />
+                    )}
                     {error && <ErrorMessage message={error} />}
                 </ListBox>
 
                 <ListBox>
-                    <WatchedSummary watched={watched} />
-                    <WatchedList watched={watched} />
+                    {selectedId ? (
+                        <MovieDetails selectedId={selectedId} onCloseMovie={handleCloseMovie} OMDB_API_KEY={OMDB_API_KEY} />
+                    ) : (
+                        <>
+                            <WatchedSummary watched={watched} />
+                            <WatchedList watched={watched} />
+                        </>
+                    )}
                 </ListBox>
             </Main>
         </>
