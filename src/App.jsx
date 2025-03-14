@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import NavBar from "./components/Navbar";
 import Main from "./components/Main";
 import Logo from "./components/Logo";
@@ -8,6 +8,8 @@ import ListBox from "./components/ListBox";
 import MovieList from "./components/MovieList";
 import WatchedSummary from "./components/WatchedSummary";
 import WatchedList from "./components/WatchedList";
+import Loader from "./components/Loader";
+import ErrorMessage from "./components/ErrorMessage";
 
 const tempMovieData = [
     {
@@ -51,21 +53,71 @@ const tempWatchedData = [
     },
 ];
 
+const OMDB_API_KEY = import.meta.env.VITE_OMDB_API_KEY;
+
 const App = () => {
     const [movies, setMovies] = useState(tempMovieData);
     const [watched, setWatched] = useState(tempWatchedData);
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState("");
+    const [query, setQuery] = useState("");
+    const [selectedId, setSelectedId] = useState("tt0133093");
+
+    useEffect(() => {
+        const fetchMovies = async () => {
+            try {
+                setIsLoading(true);
+                setError("");
+                const res = await fetch(
+                    `https://www.omdbapi.com/?apikey=${OMDB_API_KEY}&s=${query}`
+                );
+
+                if (!res.ok)
+                    throw new Error(
+                        "Something went wrong with fetching movies"
+                    );
+
+                const data = await res.json();
+                if (data.Response === "False")
+                    throw new Error("Movie not found");
+
+                setMovies(data.Search);
+                console.log(data.search);
+            } catch (err) {
+                setError(err.message);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        if (query.length < 3) {
+            setMovies([]);
+            setError("");
+            return;
+        }
+
+        fetchMovies();
+    }, [query]);
+
+    function onSelectMovie(movieId) {
+        alert(movieId)
+        setSelectedId(movieId);
+
+    }
 
     return (
         <>
             <NavBar>
                 <Logo />
-                <Search />
+                <Search query={query} setQuery={setQuery} />
                 <NumResults movies={movies} />
             </NavBar>
 
             <Main>
                 <ListBox>
-                    <MovieList movies={movies} />
+                    {isLoading && <Loader />}
+                    {!isLoading && !error && <MovieList movies={movies} onSelectMovie={onSelectMovie} />}
+                    {error && <ErrorMessage message={error} />}
                 </ListBox>
 
                 <ListBox>

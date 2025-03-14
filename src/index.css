@@ -54,8 +54,13 @@ body {
   max-width: 42rem;
   background-color: var(--color-background-500);
   border-radius: 0.9rem;
-  overflow: hidden;
+  overflow: scroll;
   position: relative;
+  scrollbar-width: none;
+}
+
+.box::-webkit-scrollbar {
+  display: none;
 }
 
 .loader {
@@ -163,7 +168,11 @@ body {
   transition: all 0.3s;
 }
 
-.list.list-movies li:hover {
+/* .list.list-movies li:hover {
+  background-color: var(--color-background-100);
+} */
+
+.list li:hover {
   background-color: var(--color-background-100);
 }
 
