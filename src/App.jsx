@@ -17,11 +17,37 @@ const OMDB_API_KEY = import.meta.env.VITE_OMDB_API_KEY;
 
 const App = () => {
     const [movies, setMovies] = useState([]);
-    const [watched, setWatched] = useState(data);
+    // const [watched, setWatched] = useState(data);
+    const [watched, setWatched] = useState(() => initialList());
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState("");
     const [query, setQuery] = useState("");
     const [selectedId, setSelectedId] = useState(null);
+
+    function initialList() { 
+            const storedValue = localStorage.getItem("watched")
+                ? JSON.parse(localStorage.getItem("watched"))
+                : data;
+            return storedValue;
+    }
+
+    function onSelectMovie(movieId) {
+        movieId === selectedId ? setSelectedId(null) : setSelectedId(movieId);
+    }
+
+    function handleCloseMovie() {
+        setSelectedId(null);
+    }
+
+    function handleAddMovie(newMovie) {
+        setWatched((watchedMovies) => [...watchedMovies, newMovie]);
+    }
+
+    function handleDeleteMovie(movieId) {
+        setWatched((watchedMovies) =>
+            watchedMovies.filter((movie) => movie.imdbID !== movieId)
+        );
+    }
 
     useEffect(() => {
         const controller = new AbortController();
@@ -70,23 +96,9 @@ const App = () => {
         };
     }, [query, watched]);
 
-    function onSelectMovie(movieId) {
-        movieId === selectedId ? setSelectedId(null) : setSelectedId(movieId);
-    }
-
-    function handleCloseMovie() {
-        setSelectedId(null);
-    }
-
-    function handleAddMovie(newMovie) {
-        setWatched((watchedMovies) => [...watchedMovies, newMovie]);
-    }
-
-    function handleDeleteMovie(movieId) {
-        setWatched((watchedMovies) =>
-            watchedMovies.filter((movie) => movie.imdbID !== movieId)
-        );
-    }
+    useEffect(() => {
+        localStorage.setItem("watched", JSON.stringify(watched));
+    }, [watched]);
 
     return (
         <>
