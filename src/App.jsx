@@ -12,17 +12,17 @@ import Loader from "./components/Loader";
 import ErrorMessage from "./components/ErrorMessage";
 import MovieDetails from "./components/MovieDetails";
 import data from "./data";
+import { useMovies } from "./useMovies";
 
 const OMDB_API_KEY = import.meta.env.VITE_OMDB_API_KEY;
 
 const App = () => {
-    const [movies, setMovies] = useState([]);
     // const [watched, setWatched] = useState(data);
     const [watched, setWatched] = useState(() => initialList());
-    const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState("");
     const [query, setQuery] = useState("");
     const [selectedId, setSelectedId] = useState(null);
+    
+    const {movies, isLoading, error} = useMovies(query, OMDB_API_KEY, handleCloseMovie);
 
     function initialList() { 
             const storedValue = localStorage.getItem("watched")
@@ -49,52 +49,6 @@ const App = () => {
         );
     }
 
-    useEffect(() => {
-        const controller = new AbortController();
-
-        const fetchMovies = async () => {
-            try {
-                setIsLoading(true);
-                setError("");
-                const res = await fetch(
-                    `https://www.omdbapi.com/?apikey=${OMDB_API_KEY}&s=${query}`,
-                    { signal: controller.signal }
-                );
-
-                if (!res.ok)
-                    throw new Error(
-                        "Something went wrong with fetching movies"
-                    );
-
-                const data = await res.json();
-                if (data.Response === "False")
-                    throw new Error("Movie not found");
-
-                setMovies(data.Search);
-                setError("");
-            } catch (err) {
-                console.error(err.message);
-                if (err.name !== "AbortError") {
-                    setError(err.message);
-                }
-            } finally {
-                setIsLoading(false);
-            }
-        };
-
-        if (query.length < 3) {
-            setMovies([]);
-            setError("");
-            return;
-        }
-
-        handleCloseMovie();
-        fetchMovies();
-
-        return () => {
-            controller.abort();
-        };
-    }, [query, watched]);
 
     useEffect(() => {
         localStorage.setItem("watched", JSON.stringify(watched));
