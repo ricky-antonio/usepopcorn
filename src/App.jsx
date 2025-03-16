@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import NavBar from "./components/Navbar";
 import Main from "./components/Main";
 import Logo from "./components/Logo";
@@ -13,23 +13,20 @@ import ErrorMessage from "./components/ErrorMessage";
 import MovieDetails from "./components/MovieDetails";
 import data from "./data";
 import { useMovies } from "./useMovies";
+import { useLocalStorageState } from "./useLocalStorageState";
 
 const OMDB_API_KEY = import.meta.env.VITE_OMDB_API_KEY;
 
 const App = () => {
-    // const [watched, setWatched] = useState(data);
-    const [watched, setWatched] = useState(() => initialList());
     const [query, setQuery] = useState("");
     const [selectedId, setSelectedId] = useState(null);
-    
-    const {movies, isLoading, error} = useMovies(query, OMDB_API_KEY, handleCloseMovie);
+    const [watched, setWatched] = useLocalStorageState(data, "watched");
 
-    function initialList() { 
-            const storedValue = localStorage.getItem("watched")
-                ? JSON.parse(localStorage.getItem("watched"))
-                : data;
-            return storedValue;
-    }
+    const { movies, isLoading, error } = useMovies(
+        query,
+        OMDB_API_KEY,
+        handleCloseMovie
+    );
 
     function onSelectMovie(movieId) {
         movieId === selectedId ? setSelectedId(null) : setSelectedId(movieId);
@@ -48,11 +45,6 @@ const App = () => {
             watchedMovies.filter((movie) => movie.imdbID !== movieId)
         );
     }
-
-
-    useEffect(() => {
-        localStorage.setItem("watched", JSON.stringify(watched));
-    }, [watched]);
 
     return (
         <>
